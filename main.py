@@ -63,8 +63,10 @@ class WeatherClient:
             self.print_current_weather(weather, city_name)
             self.print_hourly_forecast(weather)
             self.print_daily_forecast(weather)
+
         except requests.RequestException as error:
             print(f"Could not get weather data: {error}")
+
         except (KeyError, IndexError, ValueError) as error:
             print(f"Could not process weather data: {error}")
 
@@ -162,16 +164,22 @@ class NewsClient:
             params={"country": self.get_country()},
             headers={"Authorization": f"Bearer {self.API_KEY}"},
         )
-        return res.json()
+        try:
+            res.raise_for_status()
+            return res.json()
+
+        except requests.RequestException as e:
+            print(f"Could not fetch news: {e}")
+            return {}
 
     def print_news(self):
         j = self.get_news()
-        news = j["news"]
+        news = j.get("news", []) if isinstance(j, dict) else []
 
         for article in news:
-            title = article["title"]
-            description = article["description"]
-            author = article["author"]
+            title = article.get("title", "No title")
+            description = article.get("description", "No description")
+            author = article.get("author", "Unknown")
 
             print("Title: " + title)
             print("Author: " + author + "\n")
@@ -179,17 +187,94 @@ class NewsClient:
             print("***************************************************")
 
 
+class CryptoClient:
+    API_URL = "https://api.coingecko.com/api/v3/coins/markets"
+
+    def ask(self, prompt, default):
+        answer = input(f"{prompt} ({default}): ")
+        return answer or default
+
+    def get_top_coins(self):
+        limit = self.ask("How many top coins?", "10")
+        try:
+            limit_int = int(limit)
+            if limit_int <= 0:
+                raise ValueError("limit must be positive")
+
+        except ValueError:
+            print("Invalid number for top coins, using 10.")
+            limit_int = 10
+
+        try:
+            response = requests.get(
+                self.API_URL,
+                params={
+                    "vs_currency": "aud",
+                    "order": "market_cap_desc",
+                    "per_page": limit_int,
+                    "page": 1,
+                    "sparkline": "false",
+                },
+                timeout=10,
+            )
+            response.raise_for_status()
+            return response.json()
+
+        except requests.RequestException as e:
+            print(f"Could not fetch crypto data: {e}")
+            return []
+
+    def print_top_coins(self):
+        j = self.get_top_coins()
+        for c in j:
+            coin = c["name"]
+            price = c["current_price"]
+
+            print(f"{coin}: ${price} AUD")
+
+
 def main():
     weather = WeatherClient()
-    # weather.get_weather()
     news = NewsClient()
-    # news.fetch_news()
+    crypto = CryptoClient()
 
-    choice = int(input("Enter 1 for Weather, 2 for News: "))
-    if choice == 1:
-        weather.get_weather()
-    elif choice == 2:
-        news.print_news()
+    try:
+        choice_str = input("Enter 1 for Weather, 2 for News, 3 for Crypto: ").strip()
+        if not choice_str:
+            print("No choice entered. Exiting.")
+            return
+        try:
+            choice = int(choice_str)
+        except ValueError:
+            print("Invalid choice. Please enter 1, 2, or 3.")
+            return
+
+        if choice == 1:
+            try:
+                weather.get_weather()
+            except Exception as e:
+                print(f"Weather operation failed: {e}")
+
+        elif choice == 2:
+            try:
+                news.print_news()
+            except Exception as e:
+                print(f"News operation failed: {e}")
+
+        elif choice == 3:
+            try:
+                crypto.print_top_coins()
+            except Exception as e:
+                print(f"Crypto operation failed: {e}")
+
+        else:
+            print("Choice out of range. Enter 1, 2 or 3.")
+
+    except KeyboardInterrupt:
+        print("\nOperation cancelled by user.")
+
+    except Exception as e:
+        print(f"Unexpected error: {e}")
 
 
 if __name__ == "__main__":
