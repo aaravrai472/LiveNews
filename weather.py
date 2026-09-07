@@ -61,13 +61,13 @@ class WeatherClient:
         self.app.clear()
         self.app.setup_grid()
 
-        ttk.Label(self.app.container, text="Enter city").grid(
+        ttk.Label(self.app.container, text="Enter city", style="My.TLabel").grid(
             row=0, column=1, pady=(60, 20), sticky="W"
         )
         city_entry = ttk.Entry(self.app.container)
         city_entry.grid(row=1, column=1)
 
-        ttk.Label(self.app.container, text="Enter country code").grid(
+        ttk.Label(self.app.container, text="Enter country code", style="My.TLabel").grid(
             row=2, column=1, pady=20, sticky="W"
         )
         cc_entry = ttk.Entry(self.app.container)

@@ -35,12 +35,13 @@ class App(tk.Tk):
         s.map("My.TButton", background=[("active", "#E48A00")])
 
         s.configure("My.TFrame", background="#02606F")
+        s.configure("My.TLabel", background="#02606F", foreground="#B0B0B0")
 
         self.container = ttk.Frame(self, style="My.TFrame")
         self.container.pack(fill="both", expand=True)
 
         self.Weather = weather.WeatherClient(self)
-        self.News = news.NewsClient()
+        self.News = news.NewsClient(self)
         self.Crypto = crypto.CryptoClient()
 
         self.start_page()
@@ -82,7 +83,7 @@ class App(tk.Tk):
 
         ttk.Button(
             self.container,
-            # command=,
+            command=lambda: self.News.news(),
             text="Check Top Headlines",
             style="My.TButton",
         ).grid(column=1, row=1, pady=20)
