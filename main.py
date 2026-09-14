@@ -42,7 +42,7 @@ class App(tk.Tk):
 
         self.Weather = weather.WeatherClient(self)
         self.News = news.NewsClient(self)
-        self.Crypto = crypto.CryptoClient()
+        self.Crypto = crypto.CryptoClient(self)
 
         self.start_page()
 
@@ -90,7 +90,7 @@ class App(tk.Tk):
 
         ttk.Button(
             self.container,
-            # command=,
+            command=lambda: self.Crypto.crypto(),
             text="Top Cryptocurrency Prices",
             style="My.TButton",
         ).grid(column=1, row=2, pady=20)
